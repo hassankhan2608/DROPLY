@@ -53,7 +53,7 @@ const Header = ({ email, onAccountChange, showTitle }) => {
         <div className="max-w-full mx-0 h-16 flex items-center justify-between px-4 sm:px-6 lg:px-8">
           <div className="flex-none">
             <a
-              href="https://github.com/stackblitz/droply"
+              href="https://github.com/hassankhan2608/DROPLY.git"
               target="_blank"
               rel="noopener noreferrer"
               className="group"
