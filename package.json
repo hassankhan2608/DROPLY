@@ -38,6 +38,5 @@
     "gh-pages": "^6.3.0",
     "globals": "^15.9.0",
     "vite": "^5.4.2"
-  },
-  "homepage": "https://hassankhan2608.github.io/droply"
+  }
 }
