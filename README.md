@@ -30,7 +30,8 @@ Visit [Droply](https://droply.netlify.app) to try out the live demo.
 
 ## 🌐 Live Website View
 
-![Droply Screenshot]!(image.png)
+![image](https://github.com/user-attachments/assets/d8b85e31-402f-40af-880a-611ef43a7ef4)
+
 
 ## 🛠️ Tech Stack
 
