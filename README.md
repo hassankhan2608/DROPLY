@@ -111,15 +111,6 @@ npm run test
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 👥 Team
-
-- **StackBlitz** - *Initial work* - [StackBlitz](https://github.com/stackblitz)
-
-## 📚 Documentation
-
-- [API Documentation](docs/API.md)
-- [Component Documentation](docs/COMPONENTS.md)
-- [Architecture Overview](docs/ARCHITECTURE.md)
 
 ## 🙏 Acknowledgments
 
@@ -129,13 +120,10 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## 📊 Project Status
 
-Droply is in active development. Check our [roadmap](ROADMAP.md) for upcoming features.
 
 ## 📞 Support
 
-- Create a [GitHub Issue](https://github.com/stackblitz/droply/issues)
-- Join our [Discord Community](https://discord.gg/stackblitz)
-- Email us at support@stackblitz.com
+- Create a [GitHub Issue](https://github.com/hassankhan2608/droply/issues)
 
 ## ⭐ Star History
 
