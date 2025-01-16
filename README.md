@@ -26,9 +26,11 @@
 
 ## 🚀 Demo
 
-Visit [Droply](https://droply.stackblitz.io) to try out the live demo.
+Visit [Droply](https://droply.netlify.app) to try out the live demo.
 
-![Droply Screenshot](https://i.imgur.com/XYZ123.png)
+## 🌐 Live Website View
+
+![Droply Screenshot]!(image.png)
 
 ## 🛠️ Tech Stack
 
@@ -48,7 +50,7 @@ Visit [Droply](https://droply.stackblitz.io) to try out the live demo.
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/stackblitz/droply.git
+   git clone https://github.com/hassankhan2608/DROPLY.git
    cd droply
    ```
 
@@ -62,13 +64,6 @@ Visit [Droply](https://droply.stackblitz.io) to try out the live demo.
    npm run dev
    ```
 
-## 🔧 Configuration
-
-The project uses environment variables for configuration. Create a `.env` file in the root directory:
-
-```env
-VITE_API_URL=https://api.mail.tm
-```
 
 ## 📖 Usage
 
