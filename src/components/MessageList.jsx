@@ -12,11 +12,17 @@ const MessageContentView = memo(({ message, onBack, loading, downloadAttachment,
     try {
       setIsDeleting(true);
       const token = localStorage.getItem('tempmail_token');
+      
+      if (!token) {
+        throw new Error('No authentication token found. Please log in again.');
+      }
+      
       await deleteMessage(token, message.id);
       toast.success('Message deleted successfully');
       onDelete();
     } catch (error) {
-      toast.error(error.message);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to delete message';
+      toast.error(errorMessage);
     } finally {
       setIsDeleting(false);
     }
@@ -57,8 +63,8 @@ const MessageContentView = memo(({ message, onBack, loading, downloadAttachment,
   }
 
   return (
-    <div className="p-4 h-full flex flex-col">
-      <div className="flex items-center gap-3 mb-4 flex-shrink-0">
+    <div className="flex flex-col h-full">
+      <div className="flex items-center gap-3 p-4 border-b border-zinc-800/50">
         <button 
           onClick={onBack}
           className="md:hidden bg-zinc-800/50 p-2 rounded-lg hover:bg-zinc-700/50 transition-colors"
@@ -75,43 +81,44 @@ const MessageContentView = memo(({ message, onBack, loading, downloadAttachment,
           <FiTrash2 className="w-5 h-5" />
         </button>
       </div>
-      <div className="space-y-4 flex-shrink-0">
-        <div className="flex flex-wrap gap-4 text-sm">
-          <div className="flex items-center gap-2 text-zinc-400 min-w-0 max-w-full">
-            <span className="font-medium shrink-0">From:</span>
-            <span className="truncate">{message.from?.address || message.from}</span>
-          </div>
-          <div className="flex items-center gap-2 text-zinc-400">
-            <span className="font-medium">Date:</span>
-            <span>{new Date(message.createdAt).toLocaleString()}</span>
+
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <div className="p-4 space-y-4 border-b border-zinc-800/50">
+          <div className="flex flex-wrap gap-4 text-sm">
+            <div className="flex items-center gap-2 text-zinc-400 min-w-0 max-w-full">
+              <span className="font-medium shrink-0">From:</span>
+              <span className="truncate">{message.from?.address || message.from}</span>
+            </div>
+            <div className="flex items-center gap-2 text-zinc-400">
+              <span className="font-medium">Date:</span>
+              <span>{new Date(message.createdAt).toLocaleString()}</span>
+            </div>
           </div>
         </div>
 
         {loading ? (
-          <div className="flex items-center justify-center py-8">
+          <div className="flex items-center justify-center flex-1 p-4">
             <FiLoader className="w-6 h-6 text-green-500 animate-spin" />
           </div>
         ) : (
-          <div className="border-t border-zinc-800/50 pt-4 flex-1 overflow-hidden">
-            <div ref={contentRef} className="custom-scrollbar overflow-y-auto h-[calc(100vh-400px)]">
-              {message.html ? (
-                <div 
-                  className="email-content"
-                  dangerouslySetInnerHTML={{ __html: message.html }}
-                />
-              ) : message.text ? (
-                <pre className="text-zinc-300 text-base whitespace-pre-wrap font-sans break-words">
-                  {message.text}
-                </pre>
-              ) : (
-                <p className="text-zinc-400 text-base">No content available</p>
-              )}
-            </div>
+          <div ref={contentRef} className="flex-1 overflow-y-auto custom-scrollbar">
+            {message.html ? (
+              <div 
+                className="email-content"
+                dangerouslySetInnerHTML={{ __html: message.html }}
+              />
+            ) : message.text ? (
+              <pre className="text-zinc-300 text-base whitespace-pre-wrap font-sans break-words p-4">
+                {message.text}
+              </pre>
+            ) : (
+              <p className="text-zinc-400 text-base p-4">No content available</p>
+            )}
           </div>
         )}
 
         {message.attachments && message.attachments.length > 0 && (
-          <div className="border-t border-zinc-800/50 pt-4 flex-shrink-0">
+          <div className="p-4 border-t border-zinc-800/50">
             <div className="flex items-center gap-2 text-zinc-400 mb-3">
               <FiPaperclip className="w-4 h-4" />
               <span className="font-medium text-sm">Attachments ({message.attachments.length})</span>
@@ -150,15 +157,24 @@ const MessageList = ({ messages }) => {
       setLoading(true);
       const token = localStorage.getItem('tempmail_token');
       
-      if (!message.seen) {
-        await markMessageAsRead(token, message.id);
+      if (!token) {
+        throw new Error('No authentication token found. Please log in again.');
       }
       
       const fullMessage = await getMessage(token, message.id);
       setSelectedMessage(fullMessage);
+
+      if (!message.seen) {
+        try {
+          await markMessageAsRead(token, message.id);
+        } catch (error) {
+          console.warn('Failed to mark message as read:', error);
+        }
+      }
     } catch (error) {
-      toast.error('Failed to load message content');
-      console.error('Error loading message:', error);
+      const errorMessage = error.response?.data?.message || error.message || 'Failed to load message content';
+      toast.error(errorMessage);
+      console.error('Error loading message:', errorMessage);
     } finally {
       setLoading(false);
     }
@@ -182,8 +198,8 @@ const MessageList = ({ messages }) => {
   }, []);
 
   return (
-    <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-xl overflow-hidden backdrop-blur-xl transform transition-all duration-300 hover:border-zinc-700/50 animate-fade-in h-[600px] flex flex-col">
-      <div className="p-4 border-b border-zinc-800/50 shrink-0">
+    <div className="bg-zinc-900/50 border border-zinc-800/50 rounded-xl overflow-hidden backdrop-blur-xl transform transition-all duration-300 hover:border-zinc-700/50 animate-fade-in h-[calc(100vh-180px)] flex flex-col">
+      <div className="p-4 border-b border-zinc-800/50">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="bg-green-500/10 p-2 rounded-lg">
@@ -202,8 +218,10 @@ const MessageList = ({ messages }) => {
         </div>
       </div>
 
-      <div className="flex-1 flex overflow-hidden">
-        <div className={`divide-y divide-zinc-800/50 overflow-y-auto custom-scrollbar ${selectedMessage && window.innerWidth >= 768 ? 'md:w-2/5 lg:w-1/3' : 'w-full'} ${selectedMessage && window.innerWidth < 768 ? 'hidden' : ''}`}>
+      <div className="flex-1 flex overflow-hidden min-h-0">
+        <div className={`min-h-0 divide-y divide-zinc-800/50 overflow-y-auto custom-scrollbar ${
+          selectedMessage && window.innerWidth >= 768 ? 'md:w-2/5 lg:w-1/3' : 'w-full'
+        } ${selectedMessage && window.innerWidth < 768 ? 'hidden' : ''}`}>
           {messages.length === 0 ? (
             <div className="px-4 py-8 text-center">
               <div className="bg-green-500/10 p-2 rounded-xl inline-flex mb-3">
@@ -262,7 +280,9 @@ const MessageList = ({ messages }) => {
         </div>
 
         {selectedMessage && (
-          <div className={`border-l border-zinc-800/50 overflow-hidden ${window.innerWidth >= 768 ? 'md:w-3/5 lg:w-2/3' : 'w-full'}`}>
+          <div className={`min-h-0 border-l border-zinc-800/50 ${
+            window.innerWidth >= 768 ? 'md:w-3/5 lg:w-2/3' : 'w-full'
+          }`}>
             <MessageContentView
               message={selectedMessage}
               onBack={handleBack}
