@@ -1,11 +1,60 @@
 import React, { useState, useRef, useCallback, memo } from 'react';
-import { FiMail, FiClock, FiUser, FiInbox, FiLoader, FiX, FiPaperclip, FiDownload, FiArrowLeft } from 'react-icons/fi';
-import { getMessage } from '../services/api';
+import { FiMail, FiClock, FiUser, FiInbox, FiLoader, FiX, FiPaperclip, FiDownload, FiArrowLeft, FiTrash2, FiAlertTriangle } from 'react-icons/fi';
+import { getMessage, deleteMessage, markMessageAsRead } from '../services/api';
 import toast from 'react-hot-toast';
 
-// Memoized message content component
-const MessageContentView = memo(({ message, onBack, loading, downloadAttachment }) => {
+const MessageContentView = memo(({ message, onBack, loading, downloadAttachment, onDelete }) => {
   const contentRef = useRef(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    try {
+      setIsDeleting(true);
+      const token = localStorage.getItem('tempmail_token');
+      await deleteMessage(token, message.id);
+      toast.success('Message deleted successfully');
+      onDelete();
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  if (showDeleteConfirm) {
+    return (
+      <div className="p-4 h-full flex flex-col">
+        <div className="bg-red-500/10 border border-red-500/20 rounded-xl p-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="bg-red-500/10 p-2 rounded-lg">
+              <FiAlertTriangle className="w-6 h-6 text-red-500" />
+            </div>
+            <h3 className="text-lg font-medium text-red-500">Confirm Delete Message</h3>
+          </div>
+          <p className="text-zinc-400 mb-6">
+            Are you sure you want to delete this message? This action cannot be undone.
+          </p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setShowDeleteConfirm(false)}
+              className="flex-1 px-4 py-2 rounded-lg bg-zinc-800 text-white hover:bg-zinc-700 transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleDelete}
+              disabled={isDeleting}
+              className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isDeleting && <FiLoader className="w-4 h-4 animate-spin" />}
+              Confirm Delete
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 h-full flex flex-col">
@@ -19,6 +68,12 @@ const MessageContentView = memo(({ message, onBack, loading, downloadAttachment 
         <h3 className="text-xl font-medium text-white truncate flex-1">
           {message.subject || 'No Subject'}
         </h3>
+        <button
+          onClick={() => setShowDeleteConfirm(true)}
+          className="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500/20 transition-colors"
+        >
+          <FiTrash2 className="w-5 h-5" />
+        </button>
       </div>
       <div className="space-y-4 flex-shrink-0">
         <div className="flex flex-wrap gap-4 text-sm">
@@ -94,6 +149,11 @@ const MessageList = ({ messages }) => {
     try {
       setLoading(true);
       const token = localStorage.getItem('tempmail_token');
+      
+      if (!message.seen) {
+        await markMessageAsRead(token, message.id);
+      }
+      
       const fullMessage = await getMessage(token, message.id);
       setSelectedMessage(fullMessage);
     } catch (error) {
@@ -104,6 +164,14 @@ const MessageList = ({ messages }) => {
     }
   };
 
+  const handleDeleteMessage = useCallback(() => {
+    setSelectedMessage(null);
+  }, []);
+
+  const handleBack = useCallback(() => {
+    setSelectedMessage(null);
+  }, []);
+
   const downloadAttachment = useCallback((attachment) => {
     const link = document.createElement('a');
     link.href = attachment.downloadUrl;
@@ -111,10 +179,6 @@ const MessageList = ({ messages }) => {
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-  }, []);
-
-  const handleBack = useCallback(() => {
-    setSelectedMessage(null);
   }, []);
 
   return (
@@ -139,7 +203,6 @@ const MessageList = ({ messages }) => {
       </div>
 
       <div className="flex-1 flex overflow-hidden">
-        {/* Message List */}
         <div className={`divide-y divide-zinc-800/50 overflow-y-auto custom-scrollbar ${selectedMessage && window.innerWidth >= 768 ? 'md:w-2/5 lg:w-1/3' : 'w-full'} ${selectedMessage && window.innerWidth < 768 ? 'hidden' : ''}`}>
           {messages.length === 0 ? (
             <div className="px-4 py-8 text-center">
@@ -159,16 +222,22 @@ const MessageList = ({ messages }) => {
             messages.map((message, index) => (
               <div 
                 key={message.id} 
-                className={`px-4 py-3 hover:bg-zinc-800/20 transition-all duration-200 cursor-pointer animate-slide-up ${selectedMessage?.id === message.id ? 'bg-zinc-800/30' : ''}`}
+                className={`px-4 py-3 hover:bg-zinc-800/20 transition-all duration-200 cursor-pointer animate-slide-up ${
+                  selectedMessage?.id === message.id ? 'bg-zinc-800/30' : ''
+                } ${message.seen ? 'opacity-75' : ''}`}
                 style={{ animationDelay: `${index * 100}ms` }}
                 onClick={() => handleMessageClick(message)}
               >
                 <div className="flex items-start gap-3">
-                  <div className="bg-green-500/10 p-2 rounded-lg shrink-0 transform transition-transform duration-200 group-hover:scale-105">
-                    <FiMail className="w-4 h-4 text-green-500" />
+                  <div className={`p-2 rounded-lg shrink-0 transform transition-transform duration-200 group-hover:scale-105 ${
+                    message.seen ? 'bg-zinc-500/10' : 'bg-green-500/10'
+                  }`}>
+                    <FiMail className={`w-4 h-4 ${message.seen ? 'text-zinc-500' : 'text-green-500'}`} />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className={`font-medium text-white truncate ${selectedMessage ? 'text-sm' : 'text-base'}`}>
+                    <p className={`font-medium truncate ${
+                      message.seen ? 'text-zinc-400' : 'text-white'
+                    } ${selectedMessage ? 'text-sm' : 'text-base'}`}>
                       {message.subject || 'No Subject'}
                     </p>
                     <div className="mt-1 flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 text-zinc-400">
@@ -192,7 +261,6 @@ const MessageList = ({ messages }) => {
           )}
         </div>
 
-        {/* Message Content */}
         {selectedMessage && (
           <div className={`border-l border-zinc-800/50 overflow-hidden ${window.innerWidth >= 768 ? 'md:w-3/5 lg:w-2/3' : 'w-full'}`}>
             <MessageContentView
@@ -200,6 +268,7 @@ const MessageList = ({ messages }) => {
               onBack={handleBack}
               loading={loading}
               downloadAttachment={downloadAttachment}
+              onDelete={handleDeleteMessage}
             />
           </div>
         )}

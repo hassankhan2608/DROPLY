@@ -262,21 +262,18 @@ const AccountDialog = ({ isOpen, onClose, accountDetails, onSuccess }) => {
   ]);
 
   const renderDialog = () => {
-    const content = (
-      <>
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium text-white">
-            {currentView === 'details' ? 'Account Details' : activeTab === 'register' ? 'Create Account' : 'Login'}
-          </h3>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-lg bg-zinc-800/50 text-zinc-400 hover:text-white transition-colors"
-          >
-            <FiX className="w-5 h-5" />
-          </button>
-        </div>
-        {DialogContent}
-      </>
+    const header = (
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-medium text-white">
+          {currentView === 'details' ? 'Account Details' : activeTab === 'register' ? 'Create Account' : 'Login'}
+        </h3>
+        <button
+          onClick={onClose}
+          className="p-2 rounded-lg bg-zinc-800/50 text-zinc-400 hover:text-white transition-colors"
+        >
+          <FiX className="w-5 h-5" />
+        </button>
+      </div>
     );
 
     if (isMobile) {
@@ -285,10 +282,14 @@ const AccountDialog = ({ isOpen, onClose, accountDetails, onSuccess }) => {
           <Drawer.Portal>
             <Drawer.Overlay className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50" />
             <Drawer.Content className="bg-black/95 backdrop-blur-xl fixed bottom-0 left-0 right-0 max-h-[96vh] rounded-t-[10px] flex flex-col z-50 drawer-slide-up border-t border-zinc-800/30">
-              <div className="p-4 rounded-t-[10px] flex-1 overflow-auto custom-scrollbar">
+              <div className="sticky top-0 z-10 bg-black/95 backdrop-blur-xl border-b border-zinc-800/30 p-4">
                 <div className="mx-auto w-12 h-1.5 flex-shrink-0 rounded-full bg-zinc-800 mb-4" />
-                {content}
-                <div className="h-40" />
+                {header}
+              </div>
+              <div className="flex-1 overflow-y-auto custom-scrollbar">
+                <div className="p-4">
+                  {DialogContent}
+                </div>
               </div>
             </Drawer.Content>
           </Drawer.Portal>
@@ -324,9 +325,14 @@ const AccountDialog = ({ isOpen, onClose, accountDetails, onSuccess }) => {
                   leaveTo="translate-x-full"
                 >
                   <Dialog.Panel className="pointer-events-auto w-screen max-w-md">
-                    <div className="flex h-full flex-col bg-black/95 backdrop-blur-xl shadow-xl">
-                      <div className="sticky top-0 z-10 px-6 py-4 bg-black/95 backdrop-blur-xl border-b border-zinc-800/30">
-                        {content}
+                    <div className="flex h-full flex-col bg-black/95 backdrop-blur-xl">
+                      <div className="sticky top-0 z-10 bg-black/95 backdrop-blur-xl border-b border-zinc-800/30 px-6 py-4">
+                        {header}
+                      </div>
+                      <div className="flex-1 overflow-y-auto custom-scrollbar">
+                        <div className="px-6 py-4">
+                          {DialogContent}
+                        </div>
                       </div>
                     </div>
                   </Dialog.Panel>

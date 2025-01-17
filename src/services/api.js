@@ -89,3 +89,60 @@ export const getAccount = async (token) => {
     throw new Error('Failed to fetch account details. Please try again.');
   }
 };
+
+export const deleteAccount = async (token, accountId) => {
+  try {
+    await api.delete(`/accounts/${accountId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (error) {
+    if (error.response?.status === 401) {
+      throw new Error('Unauthorized. Please log in again.');
+    } else if (error.response?.status === 404) {
+      throw new Error('Account not found.');
+    }
+    throw new Error('Failed to delete account. Please try again.');
+  }
+};
+
+// Additional API methods we could use:
+export const deleteMessage = async (token, messageId) => {
+  try {
+    await api.delete(`/messages/${messageId}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (error) {
+    throw new Error('Failed to delete message. Please try again.');
+  }
+};
+
+export const markMessageAsRead = async (token, messageId) => {
+  try {
+    await api.patch(`/messages/${messageId}`, 
+      { seen: true },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+  } catch (error) {
+    throw new Error('Failed to mark message as read. Please try again.');
+  }
+};
+
+export const deleteAllMessages = async (token) => {
+  try {
+    await api.delete('/messages', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+  } catch (error) {
+    throw new Error('Failed to delete all messages. Please try again.');
+  }
+};
