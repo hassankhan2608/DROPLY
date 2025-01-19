@@ -7,6 +7,7 @@ import Hero from './components/Hero';
 import EmailBox from './components/EmailBox';
 import MessageList from './components/MessageList';
 import { createAccount, login, getMessages, getDomains } from './services/api';
+import { generateEmailUsername } from './utils/generateEmailUsername';
 
 function App() {
   const [email, setEmail] = useState('');
@@ -55,28 +56,31 @@ function App() {
       setLoading(true);
       const domainsResponse = await getDomains();
       const domain = domainsResponse['hydra:member'][0].domain;
-      
+  
       let attempts = 0;
       const maxAttempts = 3;
-      
+  
       while (attempts < maxAttempts) {
         try {
-          const randomString = Math.random().toString(36).substring(7);
-          const address = `${randomString}@${domain}`;
+          const username = generateEmailUsername();
+          const address = `${username}@${domain}`;
           const newPassword = Math.random().toString(36).substring(7);
-
+  
           await createAccount(address, newPassword);
           const loginResponse = await login(address, newPassword);
-          
+  
           setEmail(address);
           setPassword(newPassword);
           localStorage.setItem('tempmail_token', loginResponse.token);
           localStorage.setItem('tempmail_email', address);
           localStorage.setItem('tempmail_password', newPassword);
-          
+  
           // Add to recent accounts
           addToRecentAccounts(address, newPassword);
-          
+  
+          console.log(`Generated Email: ${address}`);
+          console.log(`Generated Password: ${newPassword}`);
+  
           return;
         } catch (error) {
           attempts++;
@@ -95,6 +99,7 @@ function App() {
       setLoading(false);
     }
   };
+  
 
   const fetchMessages = async () => {
     try {
